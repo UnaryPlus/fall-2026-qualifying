@@ -1,0 +1,14 @@
+name = "fall-2026"
+version = "0.1.0"
+defaultTargets = ["fall-2026"]
+
+[[lean_lib]]
+name = "Fall2026"
+
+[[lean_exe]]
+name = "fall-2026"
+root = "Main"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
