@@ -1,6 +1,4 @@
--- Owen Bechtel
--- Proof of fall 2026 algebra qualifying exam, problem 7
--- About 25%-30% is AI generated (Claude Code, Opus 5.5)
+-- Author: Owen Bechtel, with help from Claude Code Opus 5.5
 import Mathlib
 
 open Complex (I exp)

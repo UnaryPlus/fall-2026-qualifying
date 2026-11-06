@@ -1,12 +1,12 @@
-name = "fall-2026"
+name = "fall-2026-qualifying"
 version = "0.1.0"
-defaultTargets = ["fall-2026"]
+defaultTargets = ["fall-2026-qualifying"]
 
 [[lean_lib]]
-name = "Fall2026"
+name = "Fall2026Qualifying"
 
 [[lean_exe]]
-name = "fall-2026"
+name = "fall-2026-qualifying"
 root = "Main"
 
 [[require]]
