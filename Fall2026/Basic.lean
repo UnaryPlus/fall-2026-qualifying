@@ -1,3 +1,6 @@
+-- Owen Bechtel
+-- Proof of fall 2026 algebra qualifying exam, problem 7
+-- About 25%-30% is AI generated (Claude Code, Opus 5.5)
 import Mathlib
 
 open Complex (I exp)
@@ -7,30 +10,33 @@ section
 variable
   (p : ℕ)
   [p_prime : Fact (Nat.Prime p)]
-  (ζ : ℂ)
-  [ζ_prim : Fact (IsPrimitiveRoot ζ p)]
+
+noncomputable def ζ : ℂ :=
+  exp (2 * pi * I / p)
 
 def pStar : ℤ :=
   (-1)^((p - 1) / 2) * p
 
-def g : ℂ :=
-  ∑ a ∈ Finset.Ico 1 p, legendreSym p a * ζ^a
+noncomputable def g : ℂ :=
+  ∑ a ∈ Finset.Ico 1 p, legendreSym p a * (ζ p)^a
 
 noncomputable def K : IntermediateField ℚ ℂ :=
-  IntermediateField.adjoin ℚ {ζ}
+  IntermediateField.adjoin ℚ {ζ p}
 
-theorem K_cyclo : IsCyclotomicExtension {p} ℚ (K ζ) := by
+theorem ζ_prim : IsPrimitiveRoot (ζ p) p := by
+  apply Complex.isPrimitiveRoot_exp
+  exact Nat.Prime.ne_zero p_prime.out
+
+theorem K_cyclo : IsCyclotomicExtension {p} ℚ (K p) := by
   /- ~~~~~~~ BEGIN AI ~~~~~~~ -/
-  have hζ : IsPrimitiveRoot ζ p := ζ_prim.out
-  have hint : IsIntegral ℚ ζ := (hζ.isIntegral p_prime.out.pos).tower_top
-  change IsCyclotomicExtension {p} ℚ (IntermediateField.adjoin ℚ {ζ}).toSubalgebra
+  have hint : IsIntegral ℚ (ζ p) := ((ζ_prim p).isIntegral p_prime.out.pos).tower_top
+  change IsCyclotomicExtension {p} ℚ (IntermediateField.adjoin ℚ {ζ p}).toSubalgebra
   rw [IntermediateField.adjoin_simple_toSubalgebra_of_isAlgebraic hint.isAlgebraic]
-  exact hζ.adjoin_isCyclotomicExtension ℚ
+  exact (ζ_prim p).adjoin_isCyclotomicExtension ℚ
   /- ~~~~~~~ END AI ~~~~~~~ -/
 
-include p
-theorem K_numField : NumberField (K ζ) := by
-  have : IsCyclotomicExtension {p} ℚ (K ζ) := K_cyclo p ζ
+theorem K_numField : NumberField (K p) := by
+  have : IsCyclotomicExtension {p} ℚ (K p) := K_cyclo p
   apply IsCyclotomicExtension.numberField {p} ℚ
 
 def squares : Subgroup (ZMod p)ˣ := (powMonoidHom 2).range
@@ -44,49 +50,49 @@ theorem squares_index (p_ne_two : p ≠ 2) : Subgroup.index (squares p) = 2 := b
   have h_two_dvd : 2 ∣ (p - 1) := Even.two_dvd h_even
   rw [Nat.gcd_eq_right h_two_dvd]
 
-noncomputable def galEquiv : Gal(K ζ / ℚ) ≃* (ZMod p)ˣ :=
-  have : NumberField (K ζ) := K_numField p ζ
-  have : IsCyclotomicExtension {p} ℚ (K ζ) := K_cyclo p ζ
-  IsCyclotomicExtension.Rat.galEquivZMod p (K ζ)
+noncomputable def galEquiv : Gal(K p / ℚ) ≃* (ZMod p)ˣ :=
+  have : NumberField (K p) := K_numField p
+  have : IsCyclotomicExtension {p} ℚ (K p) := K_cyclo p
+  IsCyclotomicExtension.Rat.galEquivZMod p (K p)
 
-noncomputable def galSquares : Subgroup Gal(K ζ / ℚ) :=
-  Subgroup.map ((galEquiv p ζ).symm) (squares p)
+noncomputable def galSquares : Subgroup Gal(K p / ℚ) :=
+  Subgroup.map ((galEquiv p).symm) (squares p)
 
-theorem galSquares_index (p_ne_two : p ≠ 2) : Subgroup.index (galSquares p ζ) = 2 := by
+theorem galSquares_index (p_ne_two : p ≠ 2) : Subgroup.index (galSquares p) = 2 := by
   unfold galSquares
   rw [Subgroup.index_map_equiv]
   exact (squares_index p p_ne_two)
 
-noncomputable def F : IntermediateField ℚ (K ζ) :=
-  IntermediateField.fixedField (galSquares p ζ)
+noncomputable def F : IntermediateField ℚ (K p) :=
+  IntermediateField.fixedField (galSquares p)
 
-theorem F_degree (p_ne_two : p ≠ 2) : Module.finrank ℚ (F p ζ) = 2 := by
-  have : IsCyclotomicExtension {p} ℚ (K ζ) := K_cyclo p ζ
-  have : IsGalois ℚ (K ζ) := IsCyclotomicExtension.isGalois {p} ℚ (K ζ)
-  have : FiniteDimensional ℚ (K ζ) := (K_numField p ζ).to_finiteDimensional
+theorem F_degree (p_ne_two : p ≠ 2) : Module.finrank ℚ (F p) = 2 := by
+  have : IsCyclotomicExtension {p} ℚ (K p) := K_cyclo p
+  have : IsGalois ℚ (K p) := IsCyclotomicExtension.isGalois {p} ℚ (K p)
+  have : FiniteDimensional ℚ (K p) := (K_numField p).to_finiteDimensional
   rw [IntermediateField.finrank_eq_fixingSubgroup_index]
   unfold F
   rw [IntermediateField.fixingSubgroup_fixedField]
-  exact (galSquares_index p ζ p_ne_two)
+  exact (galSquares_index p p_ne_two)
 
-theorem F_unique (p_ne_two : p ≠ 2) (E : IntermediateField ℚ (K ζ)) (hE : Module.finrank ℚ E = 2) : E = F p ζ := by
-  have : IsCyclotomicExtension {p} ℚ (K ζ) := K_cyclo p ζ
-  have : IsGalois ℚ (K ζ) := IsCyclotomicExtension.isGalois {p} ℚ (K ζ)
-  have : FiniteDimensional ℚ (K ζ) := (K_numField p ζ).to_finiteDimensional
-  have : IsCyclic Gal(K ζ / ℚ) := (MulEquiv.isCyclic (galEquiv p ζ)).mpr inferInstance
+theorem F_unique (p_ne_two : p ≠ 2) (E : IntermediateField ℚ (K p)) (hE : Module.finrank ℚ E = 2) : E = F p := by
+  have : IsCyclotomicExtension {p} ℚ (K p) := K_cyclo p
+  have : IsGalois ℚ (K p) := IsCyclotomicExtension.isGalois {p} ℚ (K p)
+  have : FiniteDimensional ℚ (K p) := (K_numField p).to_finiteDimensional
+  have : IsCyclic Gal(K p / ℚ) := (MulEquiv.isCyclic (galEquiv p)).mpr inferInstance
   have hGE : E.fixingSubgroup.index = 2 := by
     rw [← IntermediateField.finrank_eq_fixingSubgroup_index]
     exact hE
-  have GE_squares : E.fixingSubgroup = galSquares p ζ := by
+  have GE_squares : E.fixingSubgroup = galSquares p := by
     rw [IsCyclic.subgroup_eq_iff_index_eq]
-    rw [hGE, galSquares_index p ζ p_ne_two]
+    rw [hGE, galSquares_index p p_ne_two]
   rw [← IsGalois.fixedField_fixingSubgroup E]
   rw [GE_squares]
   rfl
 
-theorem g_pow_two (p_ne_two : p ≠ 2) : (g p ζ)^2 = pStar p := by
+theorem g_pow_two (p_ne_two : p ≠ 2) : (g p)^2 = pStar p := by
   let χ : MulChar (ZMod p) ℂ := MulChar.ringHomComp (quadraticChar (ZMod p)) (Int.castRingHom ℂ)
-  let ψ : AddChar (ZMod p) ℂ := AddChar.zmodChar p (ζ_prim.out).pow_eq_one
+  let ψ : AddChar (ZMod p) ℂ := AddChar.zmodChar p (ζ_prim p).pow_eq_one
   have lem1 : gaussSum χ ψ ^ 2 = χ (-1) * p := by
     rw [gaussSum_sq]
     . rw [ZMod.card]
@@ -102,8 +108,8 @@ theorem g_pow_two (p_ne_two : p ≠ 2) : (g p ζ)^2 = pStar p := by
     . apply MulChar.IsQuadratic.comp
       exact quadraticChar_isQuadratic (ZMod p)
     . apply AddChar.zmodChar_primitive_of_primitive_root
-      exact ζ_prim.out
-  have lem2 : gaussSum χ ψ = g p ζ := by
+      exact ζ_prim p
+  have lem2 : gaussSum χ ψ = g p := by
     unfold gaussSum g
     rw [Finset.sum_eq_add_sum_sdiff_singleton 0]
     rw [MulChar.ringHomComp_apply]
@@ -156,10 +162,10 @@ theorem g_pow_two (p_ne_two : p ≠ 2) : (g p ζ)^2 = pStar p := by
 
 noncomputable def cycloSqrt : ℂ :=
   match p % 4 with
-  | 0 | 2 => sqrt 2
-  | 1 => g p ζ
-  | 3 => I * g p ζ
-  | _ + 4 => by omega
+  | 2 => sqrt 2
+  | 1 => g p
+  | 3 => I * g p
+  | _ => 0
 
 theorem p_notMulOf_4 : p % 4 ≠ 0 := by
   intro h
@@ -173,11 +179,11 @@ theorem p_notMulOf_4 : p % 4 ≠ 0 := by
     . norm_num
     . symm; exact hp
 
-theorem cycloSqrt_sqrt : (cycloSqrt p ζ)^2 = p := by
+theorem cycloSqrt_sqrt : (cycloSqrt p)^2 = p := by
   unfold cycloSqrt
-  match h : (p % 4) with
+  match h : p % 4 with
   | 2 =>
-    dsimp
+    simp
     have p_eq_two : p = 2 := by
       match Nat.Prime.eq_two_or_odd p_prime.out with
       | .inl hp => exact hp
@@ -186,26 +192,26 @@ theorem cycloSqrt_sqrt : (cycloSqrt p ζ)^2 = p := by
     rw [← Complex.ofReal_pow, Real.sq_sqrt (by norm_num)]
     rfl
   | 1 =>
-    dsimp
+    simp
     /- ~~~~~~~ BEGIN AI ~~~~~~~ -/
     have p_ne_two : p ≠ 2 := by omega
     have heven : Even ((p - 1) / 2) := by
       rw [Nat.even_iff]
       omega
-    rw [g_pow_two p ζ p_ne_two]
+    rw [g_pow_two p p_ne_two]
     unfold pStar
     rw [heven.neg_one_pow]
     push_cast
     ring
     /- ~~~~~~~ END AI ~~~~~~~ -/
   | 3 =>
-    dsimp
+    simp
     /- ~~~~~~~ BEGIN AI ~~~~~~~ -/
     have p_ne_two : p ≠ 2 := by omega
     have hodd : Odd ((p - 1) / 2) := by
       rw [Nat.odd_iff]
       omega
-    rw [mul_pow, Complex.I_sq, g_pow_two p ζ p_ne_two]
+    rw [mul_pow, Complex.I_sq, g_pow_two p p_ne_two]
     unfold pStar
     rw [hodd.neg_one_pow]
     push_cast
@@ -216,15 +222,14 @@ theorem cycloSqrt_sqrt : (cycloSqrt p ζ)^2 = p := by
     exact p_notMulOf_4 p h
   | _ + 4 => omega
 
-omit ζ_prim
-theorem cycloSqrt_cyclo : cycloSqrt p ζ ∈ IntermediateField.adjoin ℚ {ζ, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} := by
+theorem cycloSqrt_genBy : cycloSqrt p ∈ IntermediateField.adjoin ℚ {ζ p, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} := by
   /- ~~~~~~~ BEGIN AI ~~~~~~~ -/
-  have hI : I ∈ IntermediateField.adjoin ℚ {ζ, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} :=
+  have hI : I ∈ IntermediateField.adjoin ℚ {ζ p, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} :=
     IntermediateField.subset_adjoin _ _ (by simp)
   /- ~~~~~~~ END AI ~~~~~~~ -/
-  have hζ : ζ ∈ IntermediateField.adjoin ℚ {ζ, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} :=
+  have hζ : ζ p ∈ IntermediateField.adjoin ℚ {ζ p, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} :=
     IntermediateField.subset_adjoin _ _ (by simp)
-  have hg : g p ζ ∈ IntermediateField.adjoin ℚ {ζ, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} := by
+  have hg : g p ∈ IntermediateField.adjoin ℚ {ζ p, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} := by
     unfold g
     apply sum_mem
     intro a ha
@@ -235,10 +240,10 @@ theorem cycloSqrt_cyclo : cycloSqrt p ζ ∈ IntermediateField.adjoin ℚ {ζ, I
   unfold cycloSqrt
   match h : (p % 4) with
   | 2 =>
-    dsimp
+    simp
     /- ~~~~~~~ BEGIN AI ~~~~~~~ -/
     have hw : (sqrt 2 / 2) + I * (sqrt 2 / 2) ∈
-        IntermediateField.adjoin ℚ {ζ, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} :=
+        IntermediateField.adjoin ℚ {ζ p, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} :=
       IntermediateField.subset_adjoin _ _ (by simp)
     have h_eq : (sqrt 2 : ℂ) = (1 - I) * ((sqrt 2 / 2) + I * (sqrt 2 / 2)) := by
       linear_combination ((sqrt 2 : ℂ) / 2) * Complex.I_sq
@@ -246,10 +251,10 @@ theorem cycloSqrt_cyclo : cycloSqrt p ζ ∈ IntermediateField.adjoin ℚ {ζ, I
     rwa [← h_eq] at h
     /- ~~~~~~~ END AI ~~~~~~~ -/
   | 1 =>
-    dsimp
+    simp
     exact hg
   | 3 =>
-    dsimp
+    simp
     exact mul_mem hI hg
   | 0 =>
     exfalso
@@ -257,3 +262,152 @@ theorem cycloSqrt_cyclo : cycloSqrt p ζ ∈ IntermediateField.adjoin ℚ {ζ, I
   | _ + 4 => omega
 
 end
+
+noncomputable def cycloSqrtNat (n : ℕ) : ℂ :=
+  if n = 0 then 0
+  else List.prod (List.pmap
+    (P := Nat.Prime)
+    (fun p hp => cycloSqrt p (p_prime := ⟨hp⟩))
+    (Nat.primeFactorsList n)
+    (fun _ => Nat.prime_of_mem_primeFactorsList))
+
+noncomputable def cycloSqrtInt (n : ℤ) : ℂ :=
+  (if n < 0 then I else 1) * cycloSqrtNat (Int.natAbs n)
+
+theorem cycloSqrtNat_sqrt (n : ℕ) : (cycloSqrtNat n)^2 = n := by
+  if h : n = 0 then
+    rw [h]
+    unfold cycloSqrtNat
+    rw [ite_eq_left rfl]
+    norm_num
+  else
+    unfold cycloSqrtNat
+    rw [ite_eq_right h]
+    rw [← powMonoidHom_apply, ← List.prod_hom, List.map_pmap]
+    simp_rw [powMonoidHom_apply, cycloSqrt_sqrt]
+    have lem (x : ℕ) : ↑x = Nat.castRingHom ℂ x := by dsimp
+    conv in (fun _ _ => _) => ext _ _; rw [lem]
+    rw [List.pmap_eq_map, List.prod_hom]
+    rw [Nat.prod_primeFactorsList h]
+    dsimp
+
+theorem cycloSqrtInt_sqrt (n : ℤ) : (cycloSqrtInt n)^2 = n := by
+  unfold cycloSqrtInt
+  rw [mul_pow]
+  rw [cycloSqrtNat_sqrt]
+  norm_num
+  if h : n < 0 then
+    rw [ite_eq_left h]
+    rw [abs_eq_neg_self.mpr (le_of_lt h)]
+    norm_num
+  else
+    rw [ite_eq_right h]
+    rw [abs_eq_self.mpr (le_of_not_gt h)]
+
+noncomputable def cycloSqrtInt_gens (n : ℤ) : Set ℂ :=
+  {I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} ∪
+  {ζ x | x ∈ Nat.primeFactorsList (Int.natAbs n)}
+
+theorem cycloSqrtInt_genBy (n : ℤ) : cycloSqrtInt n ∈ IntermediateField.adjoin ℚ (cycloSqrtInt_gens n) := by
+  unfold cycloSqrtInt
+  unfold cycloSqrtInt_gens
+  apply mul_mem
+  . if h : n < 0 then
+      rw [ite_eq_left h]
+      apply IntermediateField.mem_adjoin_of_mem
+      simp
+    else
+      rw [ite_eq_right h]
+      apply one_mem
+  . unfold cycloSqrtNat
+    if h : n.natAbs = 0 then
+      rw [ite_eq_left h]
+      apply zero_mem
+    else
+      rw [ite_eq_right h]
+      apply list_prod_mem
+      intro x hx
+      have ⟨p, hp1, hp2⟩ := List.mem_pmap.mp hx
+      have p_prime := Nat.prime_of_mem_primeFactorsList hp1
+      rw [← hp2]
+      apply (IsConcreteLE.le_iff (S := IntermediateField.adjoin ℚ {ζ p, I, sqrt 2 / 2 + I * (sqrt 2 / 2)})).mp
+      . apply IntermediateField.adjoin.mono
+        intro a ha
+        simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at ha
+        rcases ha with ha | ha | ha
+        . apply Set.mem_union_right
+          use p
+          exact ⟨hp1, symm ha⟩
+        . simp; tauto
+        . simp; tauto
+      . exact cycloSqrt_genBy p (p_prime := ⟨p_prime⟩)
+
+theorem cycloSqrtInt_eq_pm_sqrt (n : ℤ) : cycloSqrtInt n = Complex.sqrt n ∨ cycloSqrtInt n = -Complex.sqrt n := by
+  apply eq_or_eq_neg_of_sq_eq_sq
+  rw [cycloSqrtInt_sqrt]
+  unfold Complex.sqrt
+  simp
+
+theorem quadratic_in_cyclo (n : ℤ) : IntermediateField.adjoin ℚ {Complex.sqrt n} ≤ IntermediateField.adjoin ℚ (cycloSqrtInt_gens n) := by
+  rw [IntermediateField.adjoin_simple_le_iff]
+  match cycloSqrtInt_eq_pm_sqrt n with
+  | .inl h =>
+    rw [← h]
+    exact cycloSqrtInt_genBy n
+  | .inr h =>
+    rw [← neg_mem_iff]
+    rw [← h]
+    exact cycloSqrtInt_genBy n
+
+theorem actuallyCyclo (n : ℤ) :
+  IsCyclotomicExtension
+  ({4, 8} ∪ {x | x ∈ Nat.primeFactorsList (Int.natAbs n)})
+  ℚ (IntermediateField.adjoin ℚ (cycloSqrtInt_gens n)) := by
+  /- ~~~~~~~ BEGIN AI ~~~~~~~ -/
+  set S : Set ℕ := {4, 8} ∪ {x | x ∈ Nat.primeFactorsList (Int.natAbs n)} with hS
+  -- (√2/2) + I(√2/2) = exp(2πi/8) is a primitive 8th root of unity
+  have w_prim : IsPrimitiveRoot ((sqrt 2 / 2 : ℂ) + I * (sqrt 2 / 2)) 8 := by
+    have h := Complex.isPrimitiveRoot_exp 8 (by norm_num)
+    have : exp (2 * ↑pi * I / ↑(8 : ℕ)) = (sqrt 2 / 2 : ℂ) + I * (sqrt 2 / 2) := by
+      rw [show 2 * (pi : ℂ) * I / ((8 : ℕ) : ℂ) = ((pi / 4 : ℝ) : ℂ) * I by push_cast; ring]
+      rw [Complex.exp_mul_I, ← Complex.ofReal_cos, ← Complex.ofReal_sin,
+        Real.cos_pi_div_four, Real.sin_pi_div_four]
+      push_cast
+      ring
+    rwa [this] at h
+  -- every order in S has a primitive root among the generators
+  have hprim : ∀ m ∈ S, m ≠ 0 →
+      ∃ r ∈ IntermediateField.adjoin ℚ (cycloSqrtInt_gens n), IsPrimitiveRoot r m := by
+    intro m hm _
+    simp only [hS, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff,
+      Set.mem_ofPred_eq] at hm
+    rcases hm with (rfl | rfl) | hm
+    · exact ⟨I, IntermediateField.subset_adjoin _ _ (by simp [cycloSqrtInt_gens]),
+        Complex.isPrimitiveRoot_I⟩
+    · exact ⟨_, IntermediateField.subset_adjoin _ _ (by simp [cycloSqrtInt_gens]), w_prim⟩
+    · exact ⟨ζ m, IntermediateField.subset_adjoin _ _ (Set.mem_union_right _ ⟨m, hm, rfl⟩),
+        Complex.isPrimitiveRoot_exp m (Nat.prime_of_mem_primeFactorsList hm).ne_zero⟩
+  -- the generators generate the same field as all m-th roots of unity, m ∈ S
+  have heq : IntermediateField.adjoin ℚ (cycloSqrtInt_gens n) =
+      IntermediateField.adjoin ℚ {b : ℂ | ∃ m ∈ S, m ≠ 0 ∧ b ^ m = 1} := by
+    apply le_antisymm
+    · rw [IntermediateField.adjoin_le_iff]
+      intro b hb
+      apply IntermediateField.subset_adjoin
+      simp only [cycloSqrtInt_gens, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff,
+        Set.mem_ofPred_eq] at hb
+      rcases hb with (rfl | rfl) | ⟨p, hp, rfl⟩
+      · exact ⟨4, by simp [hS], by norm_num, Complex.isPrimitiveRoot_I.pow_eq_one⟩
+      · exact ⟨8, by simp [hS], by norm_num, w_prim.pow_eq_one⟩
+      · have hp0 := (Nat.prime_of_mem_primeFactorsList hp).ne_zero
+        exact ⟨p, Set.mem_union_right _ hp, hp0, (Complex.isPrimitiveRoot_exp p hp0).pow_eq_one⟩
+    · rw [IntermediateField.adjoin_le_iff]
+      rintro b ⟨m, hm, hm0, hb⟩
+      obtain ⟨r, hr, hrm⟩ := hprim m hm hm0
+      have : NeZero m := ⟨hm0⟩
+      obtain ⟨k, _, rfl⟩ := hrm.eq_pow_of_pow_eq_one hb
+      exact pow_mem hr k
+  rw [heq]
+  exact IntermediateField.isCyclotomicExtension_adjoin_of_exists_isPrimitiveRoot S ℚ ℂ
+    (fun m hm hm0 => (hprim m hm hm0).imp fun _ h => h.2)
+  /- ~~~~~~~ END AI ~~~~~~~ -/
