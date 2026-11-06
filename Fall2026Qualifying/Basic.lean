@@ -221,7 +221,7 @@ theorem cycloSqrt_sqrt : (cycloSqrt p)^2 = p := by
   | _ + 4 => omega
 
 theorem cycloSqrt_genBy : cycloSqrt p ∈ IntermediateField.adjoin ℚ {ζ p, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} := by
-  /- ~~~~~~~ BEGIN AI ~~~~~~~ -/
+  /- ~~~~~~~ BEGIN AI ~~~~~~~ -/ -- (originally part of block below)
   have hI : I ∈ IntermediateField.adjoin ℚ {ζ p, I, (sqrt 2 / 2) + I * (sqrt 2 / 2)} :=
     IntermediateField.subset_adjoin _ _ (by simp)
   /- ~~~~~~~ END AI ~~~~~~~ -/

@@ -1,13 +1,9 @@
 name = "fall-2026-qualifying"
 version = "0.1.0"
-defaultTargets = ["fall-2026-qualifying"]
+defaultTargets = ["Fall2026Qualifying"]
 
 [[lean_lib]]
 name = "Fall2026Qualifying"
-
-[[lean_exe]]
-name = "fall-2026-qualifying"
-root = "Main"
 
 [[require]]
 name = "mathlib"
