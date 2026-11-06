@@ -1,4 +1,5 @@
 -- Author: Owen Bechtel, with help from Claude Code Opus 5.5
+module
 import Mathlib
 
 open Complex (I exp)
