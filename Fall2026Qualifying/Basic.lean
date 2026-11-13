@@ -1,4 +1,4 @@
--- Author: Owen Bechtel, with help from Claude Code Opus 5.5
+-- Author: Owen Bechtel
 module
 import Mathlib
 
